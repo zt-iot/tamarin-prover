@@ -664,6 +664,7 @@ prettyTranslationElement (FunctionTypingInfo ((fsn,(_,priv,_)), intypes, outtype
     where
         printType = maybe (text defaultSapicTypeS) text
         showPriv Private = " [private]"
+        showPriv Transparent = " [transparent]"
         showPriv Public  = ""
 prettyTranslationElement (ExportInfoItem eInfo) =
     (text "export: ")

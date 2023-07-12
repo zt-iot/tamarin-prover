@@ -88,8 +88,9 @@ import qualified Data.Set as S
 data ACSym = Union | Mult | Xor
   deriving (Eq, Ord, Typeable, Data, Show, Generic, NFData, Binary)
 
--- | A function symbol can be either Private (unknown to adversary) or Public.
-data Privacy = Private | Public
+-- | A function symbol can be either Private (unknown to adversary), Public
+-- or Transparent (known and destructible by adversary).
+data Privacy = Private | Public | Transparent
   deriving (Eq, Ord, Typeable, Data, Show, Generic, NFData, Binary)
 
 -- | A function symbol can be either a constructor or a destructor in which

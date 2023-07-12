@@ -76,6 +76,7 @@ funSymEncodeAttr priv constr  = f priv <> g constr
     where
         f Private = "P"
         f Public  = "X"
+        f Transparent  = "T"
         g Constructor = "C"
         g Destructor = "D"
 
@@ -89,6 +90,8 @@ funSymDecode s = (ident,priv,constr)
         (priv,constr)  = case eAttr of
                             "PD" -> (Private,Destructor)
                             "PC" -> (Private,Constructor)
+                            "TD" -> (Transparent,Destructor)
+                            "TC" -> (Transparent,Constructor)
                             "XD" -> (Public,Destructor)
                             _    -> (Public,Constructor)
 

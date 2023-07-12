@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeApplications #-}
 -- |
 -- Copyright   : (c) 2010-2012 Simon Meier, Benedikt Schmidt
 --               contributing in 2019: Robert Künnemann, Johannes Wocker
@@ -37,6 +38,7 @@ import           Text.Parsec                hiding ((<|>))
 
 import           Term.Substitution
 import           Term.SubtermRule
+import           Term.Builtin.Convenience hiding (sign)
 import           Theory
 import           Theory.Text.Parser.Token
 import Theory.Text.Parser.Fact
@@ -127,9 +129,35 @@ functionType = try (do
 -- | Parse a 'FunctionAttribute'.
 functionAttribute :: Parser (Either Privacy Constructability)
 functionAttribute = asum
-  [ symbol "private" Data.Functor.$> Left Private
+  [ (symbol "private" Data.Functor.$> Left Private)
+    <|> (symbol "transparent" Data.Functor.$> Left Transparent)
   , symbol "destructor" Data.Functor.$> Right Destructor
   ]
+
+transparentLogic :: NoEqSym -> Int -> MaudeSig -> Parser ()
+transparentLogic fsym k sign =
+  let xs = map (\i -> var "x" i) [1..toInteger k] in
+  mapM_ (\k' -> do
+    let f = fst fsym
+    let fd = BC.pack (BC.unpack f ++ "_proj" ++ show k')
+    case lookup f (S.toList $ stFunSyms sign) of
+      Just kp' ->
+        fail $ "conflicting function symbol " ++
+        show kp' ++ " for `" ++ BC.unpack f ++ "`"
+      _ -> do
+        let fdsym = (fd,(1,Public,Constructor))
+        let fdsymd = (fd,(1,Public,Destructor))
+        modifyStateSig $ addFunSym fdsym
+        let rhs = xs !! (k' - 1)
+        let rrule = fAppNoEq fdsym [ fAppNoEq fsym xs ] `RRule` rhs
+        let rruled = fAppNoEq fdsymd [ fAppNoEq fsym xs ] `RRule` rhs
+        case (rRuleToCtxtStRule rrule, rRuleToCtxtStRule rruled) of
+          (Just str, Just strd) -> do
+              modifyStateSig $ addCtxtStRule str
+              modifyStateSig $ addCtxtStRule strd
+          _ ->
+              fail $ "Not a correct equation: " ++ show rrule)
+  [1..k]
 
 function :: Parser SapicFunSym
 function =  do
@@ -139,17 +167,21 @@ function =  do
         when (BC.unpack f `elem` reservedBuiltins) $ fail $ "`" ++ BC.unpack f ++ "` is a reserved function name for builtins."
         sign <- sig <$> getState
         let k = length argTypes
-        let priv = if Private `elem` lefts atts then Private else Public
+        let priv_atts = lefts atts
+        let priv = if Private `elem` priv_atts then Private
+              else if Transparent `elem` priv_atts then Transparent else Public
         let destr = if Destructor `elem` rights atts then Destructor else Constructor
+        let fsym = (f,(k,priv,destr))
         case lookup f (S.toList $ stFunSyms sign) of
-          Just kp' | kp' /= (k,priv,destr) && BC.unpack f /= "fst" && BC.unpack f /= "snd" ->
+          Just kp' | kp' /= snd fsym && BC.unpack f /= "fst" && BC.unpack f /= "snd" ->
             fail $ "conflicting arities/private " ++
-                   show kp' ++ " and " ++ show (k,priv,destr) ++
+                   show kp' ++ " and " ++ show (snd fsym) ++
                    " for `" ++ BC.unpack f
           Just kp' | BC.unpack f == "fst" || BC.unpack f == "snd" -> do
                 return ((f,kp'),argTypes,outType)
           _ -> do
-                modifyStateSig $ addFunSym (f,(k,priv,destr))
+                modifyStateSig $ addFunSym fsym
+                when (priv == Transparent) $ transparentLogic fsym k sign
                 return ((f,(k,priv,destr)),argTypes,outType)
 
 

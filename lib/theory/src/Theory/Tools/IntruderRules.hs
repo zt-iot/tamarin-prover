@@ -194,12 +194,24 @@ subtermIntruderRules diff maudeSig =
 -- function signature @fSig@
 constructionRules :: NoEqFunSig -> [IntrRuleAC]
 constructionRules fSig =
-    [ createRule s k | (s,(k,Public,Constructor)) <- S.toList fSig ]
+    [ createRule s k p | (s,(k,p,Constructor)) <- S.toList fSig, notPrivate p ]
   where
-    createRule s k = Rule (ConstrRule (append (pack "_") s)) (map kuFact vars) [concfact] [concfact] []
+    createRule s k p = Rule (ConstrRule (append (pack "_") s)) (map kuFact vars) [concfact] [concfact] []
       where vars     = take k [ varTerm (LVar "x"  LSortMsg i) | i <- [0..] ]
-            m        = fAppNoEq (s,(k,Public,Constructor)) vars
+            m        = fAppNoEq (s,(k,p,Constructor)) vars
             concfact = kuFact m
+    notPrivate p = p /= Private
+
+-- | @cdeonstructionRules fSig@ returns the deconstruction rules for the given
+-- function signature @fSig@
+-- deconstructionRules :: NoEqFunSig -> [IntrRuleAC]
+-- deconstructionRules fSig =
+--     [ createRule s k | (s,(k,Transparent,Constructor)) <- S.toList fSig ]
+--   where
+--     createRule s k = Rule (ConstrRule (append (pack "_") s)) (map kuFact vars) [concfact] [concfact] []
+--       where vars     = take k [ varTerm (LVar "x"  LSortMsg i) | i <- [0..] ]
+--             m        = fAppNoEq (s,(k,Public,Constructor)) vars
+--             concfact = kuFact m
 
 ------------------------------------------------------------------------------
 -- Diffie-Hellman Intruder Rules
