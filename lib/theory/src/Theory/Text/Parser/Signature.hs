@@ -134,6 +134,7 @@ functionAttribute = asum
   , symbol "destructor" Data.Functor.$> Right Destructor
   ]
 
+-- | Add projection destructors and equations for a transparent symbol
 transparentLogic :: NoEqSym -> Int -> MaudeSig -> Parser ()
 transparentLogic fsym k sign =
   let xs = map (\i -> var "x" i) [1..toInteger k] in
