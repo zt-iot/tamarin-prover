@@ -135,9 +135,10 @@ functionAttribute = asum
   ]
 
 -- | Add projection destructors and equations for a transparent symbol
-transparentLogic :: NoEqSym -> Int -> MaudeSig -> Parser ()
-transparentLogic fsym k sign =
-  let xs = map (\i -> var "x" i) [1..toInteger k] in
+transparentLogic :: NoEqSym -> MaudeSig -> Parser ()
+transparentLogic fsym sign =
+  let (_,(k,_,_)) = fsym
+      xs = map (\i -> var "x" i) [1..toInteger k] in
   mapM_ (\k' -> do
     let f = fst fsym
     let fd = BC.pack (BC.unpack f ++ "_proj" ++ show k')
@@ -147,17 +148,17 @@ transparentLogic fsym k sign =
         show kp' ++ " for `" ++ BC.unpack f ++ "`"
       _ -> do
         let fdsym = (fd,(1,Public,Constructor))
-        let fdsymd = (fd,(1,Public,Destructor))
+        -- let fdsymd = (fd,(1,Public,Destructor))
         modifyStateSig $ addFunSym fdsym
         let rhs = xs !! (k' - 1)
         let rrule = fAppNoEq fdsym [ fAppNoEq fsym xs ] `RRule` rhs
-        let rruled = fAppNoEq fdsymd [ fAppNoEq fsym xs ] `RRule` rhs
-        case (rRuleToCtxtStRule rrule, rRuleToCtxtStRule rruled) of
-          (Just str, Just strd) -> do
-              modifyStateSig $ addCtxtStRule str
-              modifyStateSig $ addCtxtStRule strd
+        -- let rruled = fAppNoEq fdsymd [ fAppNoEq fsym xs ] `RRule` rhs
+        case rRuleToCtxtStRule rrule of
+          Just str -> do
+            modifyStateSig $ addCtxtStRule str
+              -- modifyStateSig $ addCtxtStRule strd
           _ ->
-              fail $ "Not a correct equation: " ++ show rrule)
+            fail $ "Not a correct equation: " ++ show rrule)
   [1..k]
 
 function :: Parser SapicFunSym
@@ -182,7 +183,7 @@ function =  do
                 return ((f,kp'),argTypes,outType)
           _ -> do
                 modifyStateSig $ addFunSym fsym
-                when (priv == Transparent) $ transparentLogic fsym k sign
+                when (priv == Transparent) $ transparentLogic (f,(k,Public,destr)) sign
                 return ((f,(k,priv,destr)),argTypes,outType)
 
 
