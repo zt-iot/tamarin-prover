@@ -254,9 +254,15 @@ mkTheoryLoadOptions as = TheoryLoadOptions
       Just "seqdfs" -> return CutSingleThreadDFS
       Just unknown  -> throwError $ ArgumentError ("unknown stop-on-trace method: " ++ unknown)
 
-    proofBound = case maybe (Right Nothing) readEither (findArg "bound" as) of
-      Left _ -> throwError $ ArgumentError "bound: invalid bound given"
-      Right b -> liftEither $ Right b
+    proofBound = liftEither $ case findArg "bound" as of
+      Nothing -> Right Nothing
+      Just b -> case readEither b of
+        Right a -> Right (Just a)
+        Left err -> Left $ ArgumentError ("invalid bound given: " ++ err)
+
+    -- proofBound = case maybe (Right Nothing) readEither (findArg "bound" as) of
+    --   Left _ -> throwError $ ArgumentError "bound: invalid bound given"
+    --   Right b -> liftEither $ Right b
 
     heuristic = case findArg "heuristic" as of
         Just rawRankings@(_:_) -> return $ Just $ roundRobinHeuristic
