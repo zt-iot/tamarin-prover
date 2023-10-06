@@ -44,6 +44,7 @@ module Term.Term.FunctionSymbols (
     , pmultSym
     , oneSym
     , dhNeutralSym
+    , logSym
     , invSym
     , pairSym
     , fstSym
@@ -122,13 +123,14 @@ type NoEqFunSig = Set NoEqSym
 -- Fixed function symbols
 ----------------------------------------------------------------------
 
-diffSymString, munSymString, expSymString, invSymString, dhNeutralSymString, oneSymString, multSymString, xorSymString, zeroSymString :: ByteString
+diffSymString, munSymString, expSymString, invSymString, dhNeutralSymString, logSymString, oneSymString, multSymString, xorSymString, zeroSymString :: ByteString
 diffSymString = "diff"
 munSymString = "mun"
 expSymString = "exp"
 invSymString = "inv"
 oneSymString = "one"
 dhNeutralSymString = "DH_neutral"
+logSymString = "log"
 multSymString = "mult"
 zeroSymString = "zero"
 xorSymString = "xor"
@@ -140,7 +142,7 @@ emapSymString, pmultSymString :: ByteString
 emapSymString  = "em"
 pmultSymString = "pmult"
 
-pairSym, diffSym, expSym, invSym, dhNeutralSym, oneSym, fstSym, sndSym, pmultSym, zeroSym :: NoEqSym
+pairSym, diffSym, expSym, invSym, dhNeutralSym, logSym, oneSym, fstSym, sndSym, pmultSym, zeroSym :: NoEqSym
 -- | Pairing.
 pairSym  = ("pair",(2,Public,Constructor))
 -- | Diff.
@@ -153,6 +155,8 @@ invSym   = (invSymString,(1,Public,Constructor))
 oneSym   = (oneSymString,(0,Public,Constructor))
 -- | The groupd identity
 dhNeutralSym = (dhNeutralSymString,(0,Public, Constructor))
+-- | The discrete logarithm
+logSym   = (logSymString,(2,Private,Constructor))
 -- | Projection of first component of pair.
 fstSym   = ("fst",(1,Public,Constructor))
 -- | Projection of second component of pair.
@@ -177,7 +181,7 @@ sndDestSym   = mkDestSym sndSym
 
 -- | The signature for Diffie-Hellman function symbols.
 dhFunSig :: FunSig
-dhFunSig = S.fromList [ AC Mult, NoEq expSym, NoEq oneSym, NoEq invSym, NoEq dhNeutralSym ]
+dhFunSig = S.fromList [ AC Mult, NoEq expSym, NoEq oneSym, NoEq invSym, NoEq logSym, NoEq dhNeutralSym ]
 
 -- | The signature for Xor function symbols.
 xorFunSig :: FunSig

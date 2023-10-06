@@ -55,12 +55,14 @@ dhRules = S.fromList
     , x1 *: (inv (x1) *: x2) `RRule` x2
     , inv x1 *: (inv x2 *: x3) `RRule` (inv (x1 *: x2) *: x3)
     , inv (x1 *: x2) *: (x2 *: x3) `RRule` (inv x1 *: x3)
+    , expo(x1, logo(x1, x2)) `RRule` x2
     ]
   where
     expo = fAppExp
     inv  = fAppInv
     dhNeutral = fAppDHNeutral
     one  = fAppOne
+    logo = fAppLog
 
 -- | The rewriting rules for bilinear pairing. These rules extend the
 --   the rules for Diffie-Hellman.

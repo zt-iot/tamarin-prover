@@ -22,6 +22,7 @@ module Term.Term (
     , fAppDiff
     , fAppExp
     , fAppInv
+    , fAppLog
     , fAppPMult
     , fAppEMap
     , fAppUnion
@@ -123,10 +124,11 @@ fAppZero :: Term a
 fAppZero = fAppNoEq zeroSym []
 
 -- | Smart constructors for diff, pair, exp, pmult, and emap.
-fAppDiff, fAppPair, fAppExp, fAppPMult :: (Term a, Term a) -> Term a
+fAppDiff, fAppPair, fAppExp, fAppLog, fAppPMult :: (Term a, Term a) -> Term a
 fAppDiff (x,y)  = fAppNoEq diffSym  [x, y]
 fAppPair (x,y)  = fAppNoEq pairSym  [x, y]
 fAppExp  (b,e)  = fAppNoEq expSym   [b, e]
+fAppLog  (x,y)  = fAppNoEq logSym   [x, y]
 fAppPMult (s,p) = fAppNoEq pmultSym [s, p]
 fAppEMap,fAppUnion :: Ord a => (Term a, Term a) -> Term a
 fAppEMap  (x,y) = fAppC    EMap     [x, y]
