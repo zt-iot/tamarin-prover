@@ -138,7 +138,7 @@ functionAttribute = asum
 transparentLogic :: NoEqSym -> MaudeSig -> Parser ()
 transparentLogic fsym sign =
   let (_,(k,_,_)) = fsym
-      xs = map (\i -> var "x" i) [1..toInteger k] in
+      xs = map (var "x") [1..toInteger k] in
   mapM_ (\k' -> do
     let f = fst fsym
     let fd = BC.pack (BC.unpack f ++ "_proj" ++ show k')
@@ -170,8 +170,8 @@ function =  do
         sign <- sig <$> getState
         let k = length argTypes
         let priv_atts = lefts atts
-        let priv = if Private `elem` priv_atts then Private
-              else if Transparent `elem` priv_atts then Transparent else Public
+        let priv = if Private `elem` priv_atts then Private else Public
+        let trsp = Transparent `elem` priv_atts
         let destr = if Destructor `elem` rights atts then Destructor else Constructor
         let fsym = (f,(k,priv,destr))
         case lookup f (S.toList $ stFunSyms sign) of
@@ -183,8 +183,8 @@ function =  do
                 return ((f,kp'),argTypes,outType)
           _ -> do
                 modifyStateSig $ addFunSym fsym
-                when (priv == Transparent) $ transparentLogic (f,(k,Public,destr)) sign
-                return ((f,(k,priv,destr)),argTypes,outType)
+                when trsp $ transparentLogic fsym sign
+                return (fsym,argTypes,outType)
 
 
 functions :: Parser [SapicFunSym]
