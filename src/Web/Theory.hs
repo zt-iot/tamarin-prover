@@ -942,11 +942,7 @@ rulesDiffSnippetSide s isdiff thy = vcat
                                      else ppWithHeader "Macros" $
         (prettyMacros $ diffTheoryMacros thy)
     ,ppWithHeader "Fact Symbols with Injective Instances" $
-<<<<<<< HEAD
-        fsepList (text . showInjFact) injFacts
-=======
         (if null injFacts then text "None" else fsepList (text . showInjFact) injFacts)
->>>>>>> upstream/develop
     , ppWithHeader "Multiset Rewriting Rules" $
         (if null(diffTheoryMacros thy) then text empty else text "(Shown with macros application)") <-> (vsep $ map prettyRuleAC msrRules)
     , ppWithHeader "Restrictions of the Set of Traces" $
